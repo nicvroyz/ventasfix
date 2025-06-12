@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Validation\Rule;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -18,7 +19,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
+        'rut',
         'name',
+        'apellido',
         'email',
         'password',
     ];
@@ -43,6 +46,24 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+        ];
+    }
+
+    public static function rules($id = null)
+    {
+        return [
+            'rut' => ['required', 'string', 'unique:users,rut,' . $id],
+            'name' => ['required', 'string', 'max:255'],
+            'apellido' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($id),
+                'regex:/^[a-zA-Z0-9._%+-]+@ventasfix\.cl$/'
+            ],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }
 }
