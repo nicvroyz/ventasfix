@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Cliente extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
+    protected $table = 'clientes';
 
     protected $fillable = [
         'rut_empresa',
@@ -18,6 +21,8 @@ class Cliente extends Model
         'nombre_contacto',
         'email_contacto'
     ];
+
+    protected $dates = ['deleted_at'];
 
     public static function rules($id = null)
     {
@@ -30,23 +35,5 @@ class Cliente extends Model
             'nombre_contacto' => ['required', 'string', 'max:255'],
             'email_contacto' => ['required', 'email', 'max:255'],
         ];
-    }
-
-    // Relación con ventas
-    public function ventas()
-    {
-        return $this->hasMany(Venta::class);
-    }
-
-    // Obtener el total de ventas del cliente
-    public function totalVentas()
-    {
-        return $this->ventas()->sum('total');
-    }
-
-    // Obtener la última venta del cliente
-    public function ultimaVenta()
-    {
-        return $this->ventas()->latest()->first();
     }
 }

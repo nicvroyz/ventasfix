@@ -32,6 +32,7 @@ class Producto extends Model
             'descripcion_larga' => ['required', 'string'],
             'imagen' => ['nullable', 'image', 'max:2048'], // 2MB max
             'precio_neto' => ['required', 'numeric', 'min:0'],
+            'precio_venta' => ['required', 'numeric', 'min:0'],
             'stock_actual' => ['required', 'integer', 'min:0'],
             'stock_minimo' => ['required', 'integer', 'min:0'],
             'stock_bajo' => ['required', 'integer', 'min:0'],
@@ -48,12 +49,18 @@ class Producto extends Model
     // Verificar si el stock está bajo
     public function stockBajo()
     {
-        return $this->stock_actual <= $this->stock_bajo;
+        return $this->stock_actual <= $this->stock_minimo;
     }
 
     // Verificar si el stock está alto
     public function stockAlto()
     {
         return $this->stock_actual >= $this->stock_alto;
+    }
+
+    // Verificar si el stock está en nivel crítico (por debajo del stock bajo)
+    public function stockCritico()
+    {
+        return $this->stock_actual <= $this->stock_bajo;
     }
 }

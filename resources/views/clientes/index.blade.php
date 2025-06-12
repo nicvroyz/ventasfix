@@ -21,7 +21,6 @@
                             <th>Rubro</th>
                             <th>Contacto</th>
                             <th>Teléfono</th>
-                            <th>Total Ventas</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -37,11 +36,6 @@
                                 </td>
                                 <td>{{ $cliente->telefono }}</td>
                                 <td>
-                                    <span class="badge bg-label-primary">
-                                        {{ number_format($cliente->total_ventas, 0, ',', '.') }}
-                                    </span>
-                                </td>
-                                <td>
                                     <div class="d-inline-block">
                                         <a href="{{ route('clientes.show', $cliente) }}" 
                                             class="btn btn-sm btn-icon btn-info">
@@ -52,11 +46,10 @@
                                             <i class="bx bx-edit"></i>
                                         </a>
                                         <form action="{{ route('clientes.destroy', $cliente) }}" 
-                                            method="POST" class="d-inline">
+                                            method="POST" class="d-inline delete-form">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-icon btn-danger"
-                                                onclick="return confirm('¿Está seguro de eliminar este cliente?')">
+                                            <button type="button" class="btn btn-sm btn-icon btn-danger delete-btn">
                                                 <i class="bx bx-trash"></i>
                                             </button>
                                         </form>
@@ -65,7 +58,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center">No hay clientes registrados</td>
+                                <td colspan="6" class="text-center">No hay clientes registrados</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -78,4 +71,30 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    $('.delete-btn').click(function(e) {
+        e.preventDefault();
+        const form = $(this).closest('form');
+        
+        Swal.fire({
+            title: '¿Está seguro?',
+            text: "Esta acción no se puede deshacer",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+@endpush 

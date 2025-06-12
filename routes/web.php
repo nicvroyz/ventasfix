@@ -7,7 +7,6 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ClienteController;
-use App\Http\Controllers\VentaController;
 
 // Rutas de autenticación
 Route::get('/', function () {
@@ -32,9 +31,4 @@ Route::middleware(['auth'])->group(function () {
 
     // Clientes
     Route::resource('clientes', ClienteController::class);
-    Route::get('clientes/{cliente}/ventas', [ClienteController::class, 'ventas'])->name('clientes.ventas');
-
-    // Ventas
-    Route::resource('ventas', VentaController::class);
-    Route::post('ventas/{venta}/estado', [VentaController::class, 'updateStatus'])->name('ventas.estado');
 });

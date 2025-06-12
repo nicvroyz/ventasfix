@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'VentasFix')</title>
 
     <meta name="description" content="" />
@@ -34,8 +35,14 @@
     <!-- Helpers -->
     <script src="{{ asset('assets/vendor/js/helpers.js') }}"></script>
     <script src="{{ asset('assets/js/config.js') }}"></script>
-</head>
 
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('js/alerts.js') }}"></script>
+</head>
 <body>
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-content-navbar">
@@ -88,14 +95,6 @@
                             <div data-i18n="Analytics">Productos</div>
                         </a>
                     </li>
-
-                    <!-- Ventas -->
-                    <li class="menu-item {{ request()->routeIs('ventas.*') ? 'active' : '' }}">
-                        <a href="{{ route('ventas.index') }}" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-cart"></i>
-                            <div data-i18n="Analytics">Ventas</div>
-                        </a>
-                    </li>
                 </ul>
             </aside>
             <!-- / Menu -->
@@ -138,7 +137,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="flex-grow-1">
-                                                    <span class="fw-semibold d-block">{{ Auth::user()->name }}</span>
+                                                    <span class="fw-semibold d-block">{{ Auth::user()->nombre }} {{ Auth::user()->apellido }}</span>
                                                     <small class="text-muted">{{ Auth::user()->email }}</small>
                                                 </div>
                                             </div>
@@ -210,5 +209,25 @@
 
     <!-- Page JS -->
     @stack('page-js')
+
+    @if(session('success'))
+        <script>
+            showSuccessAlert("{{ session('success') }}");
+        </script>
+    @endif
+
+    @if(session('error'))
+        <script>
+            showErrorAlert("{{ session('error') }}");
+        </script>
+    @endif
+
+    @if($errors->any())
+        <script>
+            showValidationErrors(@json($errors->all()));
+        </script>
+    @endif
+
+    @stack('scripts')
 </body>
 </html> 

@@ -8,13 +8,19 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminSeeder extends Seeder
 {
-    public function run()
+    /**
+     * Ejecuta el seeder.
+     */
+    public function run(): void
     {
-        User::create([
-            'name' => 'Administrador',
-            'email' => 'admin@ventasfix.cl',
-            'password' => Hash::make('admin123'),
-            'rut' => '11111111-1'
-        ]);
+        if (!User::where('email', 'admin@ventasfix.cl')->exists()) {
+            User::create([
+                'rut' => '11111111-1',
+                'nombre' => 'Administrador',
+                'apellido' => 'Sistema',
+                'email' => 'admin@ventasfix.cl',
+                'password' => Hash::make('admin123'),
+            ]);
+        }
     }
 } 

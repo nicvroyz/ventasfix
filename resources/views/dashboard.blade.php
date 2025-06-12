@@ -13,7 +13,7 @@
                         <div class="card-body">
                             <div class="card-title d-flex align-items-start justify-content-between">
                                 <div class="avatar flex-shrink-0">
-                                    <img src="{{ asset('assets/img/icons/unicons/users.png') }}" alt="Usuarios" class="rounded">
+                                    <i class="uil uil-user fs-3 text-primary"></i>
                                 </div>
                             </div>
                             <span class="fw-medium d-block mb-1">Usuarios</span>
@@ -26,7 +26,7 @@
                         <div class="card-body">
                             <div class="card-title d-flex align-items-start justify-content-between">
                                 <div class="avatar flex-shrink-0">
-                                    <img src="{{ asset('assets/img/icons/unicons/box.png') }}" alt="Productos" class="rounded">
+                                    <i class="uil uil-box fs-3 text-warning"></i>
                                 </div>
                             </div>
                             <span class="fw-medium d-block mb-1">Productos</span>
@@ -39,7 +39,7 @@
                         <div class="card-body">
                             <div class="card-title d-flex align-items-start justify-content-between">
                                 <div class="avatar flex-shrink-0">
-                                    <img src="{{ asset('assets/img/icons/unicons/store.png') }}" alt="Clientes" class="rounded">
+                                    <i class="uil uil-store fs-3 text-success"></i>
                                 </div>
                             </div>
                             <span class="fw-medium d-block mb-1">Clientes</span>
@@ -52,7 +52,7 @@
                         <div class="card-body">
                             <div class="card-title d-flex align-items-start justify-content-between">
                                 <div class="avatar flex-shrink-0">
-                                    <img src="{{ asset('assets/img/icons/unicons/warning.png') }}" alt="Stock Bajo" class="rounded">
+                                    <i class="uil uil-exclamation-triangle fs-3 text-danger"></i>
                                 </div>
                             </div>
                             <span class="fw-medium d-block mb-1">Stock Bajo</span>
@@ -64,33 +64,40 @@
         </div>
 
         <!-- Últimos Productos -->
-        <div class="col-lg-4 col-md-4 order-2">
-            <div class="card">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="card-title m-0 me-2">Últimos Productos</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="p-0 m-0">
-                        @foreach($stats['ultimos_productos'] as $producto)
-                        <li class="d-flex mb-4 pb-1">
-                            <div class="avatar flex-shrink-0 me-3">
-                                <img src="{{ $producto->imagen_url }}" alt="{{ $producto->nombre }}" class="rounded">
-                            </div>
-                            <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                <div class="me-2">
-                                    <h6 class="mb-0">{{ $producto->nombre }}</h6>
-                                    <small class="text-muted">SKU: {{ $producto->sku }}</small>
-                                </div>
-                                <div class="user-progress">
-                                    <small class="fw-medium">Stock: {{ $producto->stock_actual }}</small>
-                                </div>
-                            </div>
-                        </li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
+<div class="col-lg-4 col-md-4 order-2">
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="card-title m-0 me-2">Últimos Productos</h5>
         </div>
+        <div class="card-body">
+            <ul class="p-0 m-0">
+                @foreach($stats['ultimos_productos'] as $producto)
+                <li class="d-flex mb-4 pb-1">
+                    <div class="avatar flex-shrink-0 me-3">
+                        @if($producto->imagen_url)
+                            <img src="{{ $producto->imagen_url }}" alt="{{ $producto->nombre }}" class="rounded">
+                        @else
+                            <span class="avatar-initial rounded bg-label-secondary">
+                                <i class="uil uil-box fs-4"></i>
+                            </span>
+                        @endif
+                    </div>
+                    <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                        <div class="me-2">
+                            <h6 class="mb-0">{{ $producto->nombre }}</h6>
+                            <small class="text-muted">SKU: {{ $producto->sku }}</small>
+                        </div>
+                        <div class="user-progress">
+                            <small class="fw-medium">Stock: {{ $producto->stock_actual }}</small>
+                        </div>
+                    </div>
+                </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+</div>
+
 
         <!-- Últimos Clientes -->
         <div class="col-lg-4 col-md-4 order-3">
@@ -124,4 +131,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

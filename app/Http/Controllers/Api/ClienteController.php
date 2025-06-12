@@ -4,71 +4,139 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cliente;
+use App\Services\LogService;
+use App\Traits\Validaciones;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ClienteController extends Controller
 {
+    use Validaciones;
+
     /**
-     * Obtiene la lista de clientes paginada con conteo de ventas y total
+     * Obtiene la lista de clientes paginada
+     * 
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        $clientes = Cliente::withCount('ventas')
-            ->withSum('ventas', 'total')
-            ->paginate(10);
-            
+        $clientes = Cliente::all();
+        LogService::log('Listar clientes', 'Cliente', ['total' => $clientes->count()]);
         return response()->json($clientes);
     }
 
     /**
      * Crea un nuevo cliente
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
-        $request->validate(Cliente::rules());
+        try {
+            $validated = $request->validate([
+                'rut_empresa' => ['required', 'unique:clientes', function ($attribute, $value, $fail) {
+                    if (!$this->validarRut($value)) {
+                        $fail('El RUT de la empresa no es válido.');
+                    }
+                }],
+                'rubro' => 'required|string|max:255',
+                'razon_social' => 'required|string|max:255',
+                'telefono' => $this->reglasTelefono(),
+                'direccion' => 'required|string|max:255',
+                'nombre_contacto' => 'required|string|max:255',
+                'email_contacto' => 'required|email'
+            ]);
 
-        $cliente = Cliente::create($request->all());
+            $cliente = Cliente::create($validated);
+            
+            LogService::log('Crear cliente', 'Cliente', [
+                'cliente_id' => $cliente->id,
+                'razon_social' => $cliente->razon_social
+            ]);
 
-        return response()->json($cliente, 201);
-    }
-
-    /**
-     * Muestra los detalles de un cliente específico con sus últimas ventas
-     */
-    public function show(Cliente $cliente)
-    {
-        $cliente->load(['ventas' => function($query) {
-            $query->latest()->take(5);
-        }]);
-        
-        return response()->json($cliente);
-    }
-
-    /**
-     * Actualiza los datos de un cliente
-     */
-    public function update(Request $request, Cliente $cliente)
-    {
-        $request->validate(Cliente::rules($cliente->id));
-
-        $cliente->update($request->all());
-
-        return response()->json($cliente);
-    }
-
-    /**
-     * Elimina un cliente si no tiene ventas asociadas
-     */
-    public function destroy(Cliente $cliente)
-    {
-        if ($cliente->ventas()->exists()) {
-            return response()->json([
-                'message' => 'No se puede eliminar el cliente porque tiene ventas asociadas'
-            ], 422);
+            return response()->json($cliente, 201);
+        } catch (\Exception $e) {
+            LogService::error('Error al crear cliente', $e, $request->all());
+            return response()->json(['message' => 'Error al crear el cliente'], 500);
         }
+    }
 
-        $cliente->delete();
-        return response()->json(null, 204);
+    /**
+     * Muestra los detalles de un cliente específico
+     * 
+     * @param  \App\Models\Cliente  $cliente
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function show($id)
+    {
+        $cliente = Cliente::findOrFail($id);
+        LogService::log('Ver cliente', 'Cliente', ['cliente_id' => $id]);
+        return response()->json($cliente);
+    }
+
+    /**
+     * Actualiza la información de un cliente
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Cliente  $cliente
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            $cliente = Cliente::findOrFail($id);
+            
+            $validated = $request->validate([
+                'rut_empresa' => ['required', Rule::unique('clientes')->ignore($id), function ($attribute, $value, $fail) {
+                    if (!$this->validarRut($value)) {
+                        $fail('El RUT de la empresa no es válido.');
+                    }
+                }],
+                'rubro' => 'required|string|max:255',
+                'razon_social' => 'required|string|max:255',
+                'telefono' => $this->reglasTelefono(),
+                'direccion' => 'required|string|max:255',
+                'nombre_contacto' => 'required|string|max:255',
+                'email_contacto' => 'required|email'
+            ]);
+
+            $cliente->update($validated);
+            
+            LogService::log('Actualizar cliente', 'Cliente', [
+                'cliente_id' => $id,
+                'razon_social' => $cliente->razon_social
+            ]);
+
+            return response()->json($cliente);
+        } catch (\Exception $e) {
+            LogService::error('Error al actualizar cliente', $e, [
+                'cliente_id' => $id,
+                'request_data' => $request->all()
+            ]);
+            return response()->json(['message' => 'Error al actualizar el cliente'], 500);
+        }
+    }
+
+    /**
+     * Elimina un cliente
+     * 
+     * @param  \App\Models\Cliente  $cliente
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function destroy($id)
+    {
+        try {
+            $cliente = Cliente::findOrFail($id);
+            $cliente->delete();
+            
+            LogService::log('Eliminar cliente', 'Cliente', ['cliente_id' => $id]);
+            
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            LogService::error('Error al eliminar cliente', $e, ['cliente_id' => $id]);
+            return response()->json(['message' => 'Error al eliminar el cliente'], 500);
+        }
     }
 
     /**

@@ -6,11 +6,14 @@ use App\Models\User;
 use App\Models\Producto;
 use App\Models\Cliente;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     /**
      * Muestra el dashboard con estadísticas del sistema
+     * 
+     * @return \Illuminate\View\View
      */
     public function index()
     {
@@ -18,7 +21,7 @@ class DashboardController extends Controller
             'usuarios' => User::count(),
             'productos' => Producto::count(),
             'clientes' => Cliente::count(),
-            'productos_bajo_stock' => Producto::where('stock_actual', '<', 'stock_minimo')->count(),
+            'productos_bajo_stock' => Producto::whereRaw('stock_actual <= stock_bajo')->count(),
             'ultimos_productos' => Producto::latest()->take(5)->get(),
             'ultimos_clientes' => Cliente::latest()->take(5)->get(),
         ];

@@ -12,6 +12,8 @@ class UsuarioController extends Controller
 {
     /**
      * Obtiene la lista de usuarios paginada
+     * 
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
@@ -21,17 +23,18 @@ class UsuarioController extends Controller
 
     /**
      * Crea un nuevo usuario
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'confirmed', Password::defaults()],
-        ]);
+        $request->validate(User::rules());
 
         $usuario = User::create([
+            'rut' => $request->rut,
             'name' => $request->name,
+            'apellido' => $request->apellido,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
@@ -41,6 +44,9 @@ class UsuarioController extends Controller
 
     /**
      * Muestra los detalles de un usuario específico
+     * 
+     * @param  \App\Models\User  $usuario
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show(User $usuario)
     {
@@ -49,17 +55,19 @@ class UsuarioController extends Controller
 
     /**
      * Actualiza la información de un usuario
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\User  $usuario
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, User $usuario)
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $usuario->id],
-            'password' => ['nullable', 'confirmed', Password::defaults()],
-        ]);
+        $request->validate(User::rules($usuario->id));
 
         $usuario->update([
+            'rut' => $request->rut,
             'name' => $request->name,
+            'apellido' => $request->apellido,
             'email' => $request->email,
         ]);
 
@@ -74,6 +82,9 @@ class UsuarioController extends Controller
 
     /**
      * Elimina un usuario
+     * 
+     * @param  \App\Models\User  $usuario
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(User $usuario)
     {

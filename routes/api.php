@@ -3,10 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\UsuarioController;
-use App\Http\Controllers\Api\ProductoController;
 use App\Http\Controllers\Api\ClienteController;
-use App\Http\Controllers\Api\VentaController;
+use App\Http\Controllers\Api\ProductoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,28 +17,20 @@ use App\Http\Controllers\Api\VentaController;
 |
 */
 
-// Rutas públicas
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+// Rutas de autenticación
+Route::post('login', [AuthController::class, 'login']);
+Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 // Rutas protegidas
 Route::middleware('auth:sanctum')->group(function () {
-    // Auth
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', [AuthController::class, 'user']);
-
-    // Usuarios
-    Route::apiResource('usuarios', UsuarioController::class);
+    // Clientes
+    Route::apiResource('clientes', ClienteController::class);
 
     // Productos
     Route::apiResource('productos', ProductoController::class);
     Route::post('productos/{producto}/stock', [ProductoController::class, 'updateStock']);
-
-    // Clientes
-    Route::apiResource('clientes', ClienteController::class);
-    Route::get('clientes/{cliente}/ventas', [ClienteController::class, 'ventas']);
-
-    // Ventas
-    Route::apiResource('ventas', VentaController::class);
-    Route::post('ventas/{venta}/estado', [VentaController::class, 'updateStatus']);
 }); 

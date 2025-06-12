@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Storage;
 class ProductoController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra la lista de productos
+     * 
+     * @return \Illuminate\View\View
      */
     public function index()
     {
@@ -18,7 +20,9 @@ class ProductoController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Muestra el formulario para crear un nuevo producto
+     * 
+     * @return \Illuminate\View\View
      */
     public function create()
     {
@@ -26,29 +30,45 @@ class ProductoController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Almacena un nuevo producto en la base de datos
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
     {
-        $validated = $request->validate(Producto::rules());
-
-        // Calcular precio de venta con IVA
-        $validated['precio_venta'] = $validated['precio_neto'] * 1.19;
-
-        // Manejar la imagen
-        if ($request->hasFile('imagen')) {
-            $path = $request->file('imagen')->store('productos', 'public');
-            $validated['imagen'] = $path;
+        try {
+            $validated = $request->validate(Producto::rules());
+            
+            // Generar SKU si no se proporciona
+            if (empty($validated['sku'])) {
+                $validated['sku'] = 'SKU-' . strtoupper(substr(md5(uniqid()), 0, 8));
+            }
+            
+            // Calcular precio de venta con IVA
+            $validated['precio_venta'] = $validated['precio_neto'] * 1.19;
+            
+            // Manejar la imagen si se proporciona
+            if ($request->hasFile('imagen')) {
+                $validated['imagen'] = $request->file('imagen')->store('productos', 'public');
+            }
+            
+            $producto = Producto::create($validated);
+            
+            return redirect()->route('productos.index')
+                ->with('success', 'Producto creado exitosamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al crear el producto: ' . $e->getMessage());
         }
-
-        $producto = Producto::create($validated);
-
-        return redirect()->route('productos.index')
-            ->with('success', 'Producto creado exitosamente.');
     }
 
     /**
-     * Display the specified resource.
+     * Muestra los detalles de un producto específico
+     * 
+     * @param  \App\Models\Producto  $producto
+     * @return \Illuminate\View\View
      */
     public function show(Producto $producto)
     {
@@ -56,7 +76,10 @@ class ProductoController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Muestra el formulario para editar un producto
+     * 
+     * @param  \App\Models\Producto  $producto
+     * @return \Illuminate\View\View
      */
     public function edit(Producto $producto)
     {
@@ -64,44 +87,58 @@ class ProductoController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza la información de un producto en la base de datos
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Producto  $producto
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(Request $request, Producto $producto)
     {
-        $validated = $request->validate(Producto::rules($producto->id));
+        try {
+            $request->validate(Producto::rules($producto->id));
 
-        // Calcular precio de venta con IVA
-        $validated['precio_venta'] = $validated['precio_neto'] * 1.19;
+            $producto->update($request->all());
 
-        // Manejar la imagen
-        if ($request->hasFile('imagen')) {
-            // Eliminar imagen anterior si existe
-            if ($producto->imagen) {
-                Storage::disk('public')->delete($producto->imagen);
+            if ($request->hasFile('imagen')) {
+                // Eliminar imagen anterior si existe
+                if ($producto->imagen) {
+                    Storage::disk('public')->delete($producto->imagen);
+                }
+                $producto->imagen = $request->file('imagen')->store('productos', 'public');
+                $producto->save();
             }
-            $path = $request->file('imagen')->store('productos', 'public');
-            $validated['imagen'] = $path;
+
+            return redirect()->route('productos.index')
+                ->with('success', 'Producto actualizado exitosamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error al actualizar el producto: ' . $e->getMessage())
+                ->withInput();
         }
-
-        $producto->update($validated);
-
-        return redirect()->route('productos.index')
-            ->with('success', 'Producto actualizado exitosamente.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un producto de la base de datos
+     * 
+     * @param  \App\Models\Producto  $producto
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(Producto $producto)
     {
-        // Eliminar imagen si existe
-        if ($producto->imagen) {
-            Storage::disk('public')->delete($producto->imagen);
+        try {
+            // Eliminar imagen si existe
+            if ($producto->imagen) {
+                Storage::disk('public')->delete($producto->imagen);
+            }
+
+            $producto->delete();
+
+            return redirect()->route('productos.index')
+                ->with('success', 'Producto eliminado exitosamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error al eliminar el producto: ' . $e->getMessage());
         }
-
-        $producto->delete();
-
-        return redirect()->route('productos.index')
-            ->with('success', 'Producto eliminado exitosamente.');
     }
 }

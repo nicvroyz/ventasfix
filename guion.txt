@@ -1,0 +1,188 @@
+ Guion técnico – Video 1: Sistema desarrollado 
+
+Introducción general
+
+El sistema desarrollado es un panel de administración web construido en Laravel, orientado a gestionar internamente la información clave de la empresa VentasFix. Está compuesto por tres módulos principales: usuarios, productos y clientes, además de un dashboard general.
+
+El sistema permite controlar los accesos mediante un login con autenticación, utilizando correos institucionales del dominio @ventasfix.cl. Las contraseñas de los usuarios se almacenan cifradas según los estándares de seguridad del framework.
+
+Cada uno de los módulos implementa operaciones CRUD completas: creación, lectura, actualización y eliminación de registros. Las acciones están disponibles solo si se cumplen las validaciones requeridas, como la obligatoriedad de todos los campos.
+
+En el módulo de usuarios, se administra el personal autorizado para ingresar al sistema. En productos, se controlan todos los artículos disponibles, incluyendo stock y precios, considerando el cálculo automático del IVA. El módulo de clientes permite mantener actualizada la información de las empresas que compran a VentasFix.
+
+Finalmente, el sistema cuenta con un dashboard donde se muestran tres contadores principales: número total de usuarios, productos y clientes. Estos datos se obtienen dinámicamente desde la base de datos.
+
+El sistema cumple con los requerimientos definidos, integrando la interfaz del template proporcionado, respetando las validaciones de campos obligatorios, el cifrado de contraseñas y la estructura modular solicitada.
+
+Módulo 1: Login
+
+    Implementación de pantalla de inicio de sesión.
+
+    Validación de credenciales de usuario (email institucional con dominio @ventasfix.cl).
+
+    Almacenamiento de contraseñas de forma cifrada utilizando el sistema de hashing de Laravel.
+
+    Restricción de acceso a las vistas internas del sistema.
+
+Módulo 2: Usuarios
+
+    CRUD completo:
+
+        Listado general de todos los usuarios.
+
+        Visualización de los datos de un usuario por su ID (en una vista compartida con el formulario de edición).
+
+        Creación de nuevos usuarios con validación de campos requeridos.
+
+        Edición de datos de usuario por ID.
+
+        Eliminación de usuarios por ID.
+
+    Validaciones:
+
+        Todos los campos obligatorios.
+
+        Email restringido al dominio @ventasfix.cl.
+
+Módulo 3: Productos
+
+    CRUD completo:
+
+        Listado de todos los productos.
+
+        Visualización de los datos de un producto por su ID.
+
+        Registro de nuevos productos con validaciones de datos completos.
+
+        Edición de productos existentes.
+
+        Eliminación segura de productos.
+
+    Cálculo automático del precio de venta con IVA (19%) basado en el precio neto.
+
+    Control de stock:
+
+        Campos para stock actual, mínimo, bajo y alto.
+
+Módulo 4: Clientes
+
+    CRUD completo:
+
+        Listado de clientes registrados.
+
+        Visualización individual por ID.
+
+        Creación con campos obligatorios como razón social, rubro y contacto.
+
+        Edición de información por ID.
+
+        Eliminación de registros.
+
+    Gestión de clientes tipo empresa:
+
+        Incluye información de contacto y datos fiscales.
+
+Módulo 5: Dashboard
+
+    Visualización de estadísticas generales:
+
+        Cantidad total de usuarios.
+
+        Cantidad total de productos.
+
+        Cantidad total de clientes.
+
+    Los datos se cargan dinámicamente desde la base de datos.
+
+Cumplimiento técnico adicional
+
+    Aplicación del template entregado como base de diseño.
+
+    Protección contra datos incompletos en formularios.
+
+    Navegación protegida tras login.
+
+    Contraseñas cifradas en la base de datos.
+
+
+Guion técnico – Video 2: API RESTful (Laravel)
+
+La API desarrollada en Laravel permite exponer los mismos datos del sistema de backoffice para que puedan ser consumidos por sistemas externos, como el software de gestión contratado por la empresa.
+
+La API está estructurada de forma RESTful e incluye endpoints para los tres módulos: usuarios, productos y clientes. Cada módulo implementa los métodos estándar para listar registros, obtener uno por ID, crear nuevos, actualizar y eliminar.
+
+Todos los endpoints de escritura requieren datos completos y válidos. No se permiten campos vacíos, de acuerdo con los requerimientos. Las respuestas de la API están normalizadas y entregan mensajes claros en formato JSON.
+
+El acceso a la API está protegido mediante autenticación por token, siguiendo los estándares de seguridad web. Esto garantiza que solo sistemas autorizados puedan consumirla.
+
+En resumen, la API extiende la funcionalidad del sistema, facilitando su integración con aplicaciones externas, y cumple con todas las solicitudes técnicas indicadas para el desarrollo y exposición segura de datos.
+
+Autenticación de la API
+
+    Implementación de autenticación por token.
+
+    Protección de rutas para evitar accesos no autorizados.
+
+    Cumple con el estándar de seguridad solicitado para el consumo externo.
+
+Módulo 1: API de Usuarios
+
+    Rutas expuestas:
+
+        GET /api/usuarios: lista todos los usuarios.
+
+        GET /api/usuarios/{id}: muestra un usuario específico.
+
+        POST /api/usuarios: crea un nuevo usuario.
+
+        PUT /api/usuarios/{id}: actualiza los datos de un usuario.
+
+        DELETE /api/usuarios/{id}: elimina un usuario.
+
+    Validación estricta de campos requeridos.
+
+    Respuestas en formato JSON estandarizado.
+
+Módulo 2: API de Productos
+
+    Rutas expuestas:
+
+        GET /api/productos: lista todos los productos.
+
+        GET /api/productos/{id}: retorna un producto por ID.
+
+        POST /api/productos: crea un nuevo producto.
+
+        PUT /api/productos/{id}: modifica un producto existente.
+
+        DELETE /api/productos/{id}: elimina un producto.
+
+    Validación de precios, IVA y campos obligatorios.
+
+    Formato de respuesta JSON.
+
+Módulo 3: API de Clientes
+
+    Rutas expuestas:
+
+        GET /api/clientes: lista de clientes.
+
+        GET /api/clientes/{id}: obtiene datos por ID.
+
+        POST /api/clientes: crea un nuevo cliente.
+
+        PUT /api/clientes/{id}: edita los datos.
+
+        DELETE /api/clientes/{id}: elimina un cliente.
+
+    Validación de datos fiscales y de contacto.
+
+Cumplimiento técnico adicional
+
+    Estándares REST respetados.
+
+    Seguridad mediante autenticación.
+
+    Consistencia de datos entre sistema y API.
+
+    Estructura modular para reutilización de código y mantenibilidad.

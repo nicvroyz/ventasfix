@@ -3,14 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Rules\RutChileno;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class UsuarioController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra la lista de usuarios
+     * 
+     * @return \Illuminate\View\View
      */
     public function index()
     {
@@ -19,7 +23,9 @@ class UsuarioController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Muestra el formulario para crear un nuevo usuario
+     * 
+     * @return \Illuminate\View\View
      */
     public function create()
     {
@@ -27,29 +33,38 @@ class UsuarioController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Almacena un nuevo usuario en la base de datos
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'rut' => ['required', 'string', 'unique:users', new RutChileno],
+            'nombre' => 'required|string|max:255',
+            'apellido' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users|ends_with:@ventasfix.cl',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         User::create([
-            'name' => $request->name,
+            'rut' => $request->rut,
+            'nombre' => $request->nombre,
+            'apellido' => $request->apellido,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        return redirect()
-            ->route('usuarios.index')
-            ->with('success', 'Usuario creado exitosamente');
+        return redirect()->route('usuarios.index')
+            ->with('success', 'Usuario creado exitosamente.');
     }
 
     /**
-     * Display the specified resource.
+     * Muestra los detalles de un usuario específico
+     * 
+     * @param  \App\Models\User  $usuario
+     * @return \Illuminate\View\View
      */
     public function show(User $usuario)
     {
@@ -57,7 +72,10 @@ class UsuarioController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Muestra el formulario para editar un usuario
+     * 
+     * @param  \App\Models\User  $usuario
+     * @return \Illuminate\View\View
      */
     public function edit(User $usuario)
     {
@@ -65,45 +83,68 @@ class UsuarioController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza la información de un usuario en la base de datos
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\User  $usuario
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(Request $request, User $usuario)
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $usuario->id],
-            'password' => ['nullable', 'confirmed', Password::defaults()],
-        ]);
-
-        $usuario->update([
-            'name' => $request->name,
-            'email' => $request->email,
-        ]);
-
-        if ($request->filled('password')) {
-            $usuario->update([
-                'password' => Hash::make($request->password),
+        try {
+            $request->validate([
+                'nombre' => 'required|string|max:255',
+                'apellido' => 'required|string|max:255',
+                'email' => [
+                    'required',
+                    'email',
+                    'max:255',
+                    Rule::unique('users')->ignore($usuario->id),
+                    'regex:/^[a-zA-Z0-9._-]+@ventasfix\.cl$/'
+                ],
+                'rut' => [
+                    'required',
+                    'string',
+                    Rule::unique('users')->ignore($usuario->id),
+                    new RutChileno
+                ],
+                'rol' => 'required|in:admin,vendedor',
+                'password' => 'nullable|min:8|confirmed'
+            ], [
+                'email.regex' => 'El correo electrónico debe ser del dominio @ventasfix.cl',
+                'rut.unique' => 'Este RUT ya está registrado',
+                'email.unique' => 'Este correo electrónico ya está registrado'
             ]);
-        }
 
-        return redirect()
-            ->route('usuarios.index')
-            ->with('success', 'Usuario actualizado exitosamente');
+            $usuario->nombre = $request->nombre;
+            $usuario->apellido = $request->apellido;
+            $usuario->email = $request->email;
+            $usuario->rut = $request->rut;
+            $usuario->rol = $request->rol;
+
+            if ($request->filled('password')) {
+                $usuario->password = Hash::make($request->password);
+            }
+
+            $usuario->save();
+
+            return redirect()->route('usuarios.index')->with('success', 'Usuario actualizado correctamente');
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar usuario: ' . $e->getMessage());
+            return back()->with('error', 'Error al actualizar el usuario: ' . $e->getMessage());
+        }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un usuario de la base de datos
+     * 
+     * @param  \App\Models\User  $usuario
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(User $usuario)
     {
-        if ($usuario->id === auth()->id()) {
-            return back()->with('error', 'No puedes eliminar tu propio usuario');
-        }
-
         $usuario->delete();
-
-        return redirect()
-            ->route('usuarios.index')
-            ->with('success', 'Usuario eliminado exitosamente');
+        return redirect()->route('usuarios.index')
+            ->with('success', 'Usuario eliminado exitosamente.');
     }
 } 

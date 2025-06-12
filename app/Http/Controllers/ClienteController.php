@@ -8,19 +8,20 @@ use Illuminate\Http\Request;
 class ClienteController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra la lista de clientes
+     * 
+     * @return \Illuminate\View\View
      */
     public function index()
     {
-        $clientes = Cliente::withCount('ventas')
-            ->withSum('ventas', 'total')
-            ->latest()
-            ->paginate(10);
+        $clientes = Cliente::latest()->paginate(10);
         return view('clientes.index', compact('clientes'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Muestra el formulario para crear un nuevo cliente
+     * 
+     * @return \Illuminate\View\View
      */
     public function create()
     {
@@ -28,7 +29,10 @@ class ClienteController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Almacena un nuevo cliente en la base de datos
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
     {
@@ -41,18 +45,21 @@ class ClienteController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Muestra los detalles de un cliente específico
+     * 
+     * @param  \App\Models\Cliente  $cliente
+     * @return \Illuminate\View\View
      */
     public function show(Cliente $cliente)
     {
-        $cliente->load(['ventas' => function($query) {
-            $query->latest()->take(5);
-        }]);
         return view('clientes.show', compact('cliente'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Muestra el formulario para editar un cliente
+     * 
+     * @param  \App\Models\Cliente  $cliente
+     * @return \Illuminate\View\View
      */
     public function edit(Cliente $cliente)
     {
@@ -60,7 +67,11 @@ class ClienteController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza la información de un cliente en la base de datos
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Cliente  $cliente
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(Request $request, Cliente $cliente)
     {
@@ -73,19 +84,24 @@ class ClienteController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un cliente de la base de datos
+     * 
+     * @param  \App\Models\Cliente  $cliente
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(Cliente $cliente)
     {
-        // Verificar si el cliente tiene ventas
-        if ($cliente->ventas()->exists()) {
+        try {
+            if ($cliente->delete()) {
+                return redirect()->route('clientes.index')
+                    ->with('success', 'Cliente eliminado exitosamente.');
+            }
+
             return redirect()->route('clientes.index')
-                ->with('error', 'No se puede eliminar el cliente porque tiene ventas asociadas.');
+                ->with('error', 'No se pudo eliminar el cliente. Por favor, intente nuevamente.');
+        } catch (\Exception $e) {
+            return redirect()->route('clientes.index')
+                ->with('error', 'Error al eliminar el cliente: ' . $e->getMessage());
         }
-
-        $cliente->delete();
-
-        return redirect()->route('clientes.index')
-            ->with('success', 'Cliente eliminado exitosamente.');
     }
 }
