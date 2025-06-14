@@ -8,10 +8,10 @@
         @enderror
     </div>
     <div class="col-md-6 mb-3">
-        <label for="name" class="form-label">Nombre <span class="text-danger">*</span></label>
-        <input type="text" class="form-control @error('name') is-invalid @enderror" 
-               id="name" name="name" value="{{ old('name', $usuario->name ?? '') }}" required>
-        @error('name')
+        <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+        <input type="text" class="form-control @error('nombre') is-invalid @enderror" 
+               id="nombre" name="nombre" value="{{ old('nombre', $usuario->nombre ?? '') }}" required>
+        @error('nombre')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>

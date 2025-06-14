@@ -108,7 +108,6 @@ class UsuarioController extends Controller
                     Rule::unique('users')->ignore($usuario->id),
                     new RutChileno
                 ],
-                'rol' => 'required|in:admin,vendedor',
                 'password' => 'nullable|min:8|confirmed'
             ], [
                 'email.regex' => 'El correo electrónico debe ser del dominio @ventasfix.cl',
@@ -120,7 +119,6 @@ class UsuarioController extends Controller
             $usuario->apellido = $request->apellido;
             $usuario->email = $request->email;
             $usuario->rut = $request->rut;
-            $usuario->rol = $request->rol;
 
             if ($request->filled('password')) {
                 $usuario->password = Hash::make($request->password);

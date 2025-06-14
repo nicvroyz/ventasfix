@@ -51,7 +51,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'rut' => ['required', 'string', 'unique:users,rut,' . $id],
-            'name' => ['required', 'string', 'max:255'],
+            'nombre' => ['required', 'string', 'max:255'],
             'apellido' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
